@@ -1,0 +1,97 @@
+# Testes da API - use a extensão "REST Client" do VS Code
+# e clique em "Send Request" acima de cada requisição.
+
+@url = http://localhost:3000/api
+
+### 1. Listar eventos com seus palestrantes
+GET {{url}}/eventos
+
+### 2. Buscar um evento
+GET {{url}}/eventos/1
+
+### 3. Cadastrar evento
+POST {{url}}/eventos
+Content-Type: application/json
+
+{
+  "nome": "Hackathon Acadêmico",
+  "descricao": "Maratona de programação em equipes com mentoria.",
+  "local": "Ginásio Poliesportivo"
+}
+
+### 4. Cadastrar evento sem um campo (deve retornar 400)
+POST {{url}}/eventos
+Content-Type: application/json
+
+{
+  "nome": "Evento incompleto",
+  "descricao": "Falta o local"
+}
+
+### 5. Alterar evento
+PUT {{url}}/eventos/1
+Content-Type: application/json
+
+{
+  "nome": "Semana de Tecnologia 2026",
+  "descricao": "Palestras sobre web, nuvem e IA.",
+  "local": "Auditório Principal"
+}
+
+### 6. Adicionar palestrante ao evento
+POST {{url}}/eventos/2/palestrantes
+Content-Type: application/json
+
+{
+  "id_palestrante": 1
+}
+
+### 7. Adicionar o mesmo palestrante de novo (deve retornar 409)
+POST {{url}}/eventos/2/palestrantes
+Content-Type: application/json
+
+{
+  "id_palestrante": 1
+}
+
+### 8. Remover palestrante do evento
+DELETE {{url}}/eventos/1/palestrantes/3
+
+### 9. Excluir evento
+DELETE {{url}}/eventos/4
+
+### 10. Listar palestrantes
+GET {{url}}/palestrantes
+
+### 11. Cadastrar palestrante
+POST {{url}}/palestrantes
+Content-Type: application/json
+
+{
+  "nome": "Fábio Costa",
+  "email": "fabio.costa@email.com"
+}
+
+### 12. Cadastrar palestrante com e-mail repetido (deve retornar 409)
+POST {{url}}/palestrantes
+Content-Type: application/json
+
+{
+  "nome": "Outra Ana",
+  "email": "ana.souza@email.com"
+}
+
+### 13. Alterar palestrante
+PUT {{url}}/palestrantes/2
+Content-Type: application/json
+
+{
+  "nome": "Bruno Lima",
+  "email": "bruno.lima@eventos.com"
+}
+
+### 14. Excluir palestrante
+DELETE {{url}}/palestrantes/5
+
+### 15. Relatório usando a view vw_eventos_palestrantes
+GET {{url}}/relatorio

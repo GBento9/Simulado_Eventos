@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./eventos.db"
+}
+
+model Evento {
+  id_evento    Int                 @id @default(autoincrement())
+  nome         String
+  descricao    String
+  local        String
+  palestrantes EventoPalestrante[]
+
+  @@map("evento")
+}
+
+model Palestrante {
+  id_palestrante Int                 @id @default(autoincrement())
+  nome           String
+  email          String              @unique
+  eventos        EventoPalestrante[]
+
+  @@map("palestrante")
+}
+
+model EventoPalestrante {
+  id_evento      Int
+  id_palestrante Int
+  evento         Evento      @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: Cascade)
+  palestrante    Palestrante @relation(fields: [id_palestrante], references: [id_palestrante], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([id_evento, id_palestrante])
+  @@index([id_palestrante])
+  @@map("evento_palestrante")
+}
