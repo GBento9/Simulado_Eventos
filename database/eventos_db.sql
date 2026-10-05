@@ -60,6 +60,9 @@ INSERT INTO evento_palestrante (id_evento, id_palestrante) VALUES
     (3, 2), (3, 5),
     (4, 1), (4, 4), (4, 5);
 
+
+-- View: eventos com a lista de palestrantes
+CREATE VIEW vw_eventos_palestrantes AS
 SELECT
     e.id_evento,
     e.nome        AS evento,

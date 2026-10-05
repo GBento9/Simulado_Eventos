@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de evento</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Gerenciador de eventos</h1>
+      <nav>
+        <a href="palestrante.html">Cadastro de palestrantes</a>
+        <a href="evento.html">Cadastro de evento</a>
+        <a href="index.html">Gerenciador de evento</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2 id="titulo">Cadastro de evento</h2>
+
+      <form id="form">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" maxlength="100" required />
+
+        <label for="descricao">Descrição</label>
+        <input type="text" id="descricao" maxlength="255" required />
+
+        <label for="local">Local</label>
+        <input type="text" id="local" maxlength="150" required />
+
+        <label for="palestrante">Palestrante</label>
+        <select id="palestrante" required>
+          <option value="">Selecione</option>
+        </select>
+
+        <button type="submit" class="botao">Cadastrar</button>
+      </form>
+    </main>
+
+    <script>
+      // pelo Express (porta 3000) usa o mesmo endereco; pelo Live Server chama o Express na 3000
+      const API = location.port === "3000" ? "/api" : "http://localhost:3000/api";
+
+      const form = document.getElementById("form");
+      const selectPalestrante = document.getElementById("palestrante");
+
+      // quando vem do botao Editar a url fica evento.html?id=3
+      const idEvento = new URLSearchParams(window.location.search).get("id");
+
+      async function carregarPalestrantes() {
+        const resposta = await fetch(API + "/palestrantes");
+        const palestrantes = await resposta.json();
+
+        if (palestrantes.length === 0) {
+          selectPalestrante.options[0].textContent =
+            "Cadastre um palestrante primeiro";
+          return;
+        }
+
+        palestrantes.forEach((p) => {
+          const opcao = document.createElement("option");
+          opcao.value = p.id_palestrante;
+          opcao.textContent = p.nome;
+          selectPalestrante.appendChild(opcao);
+        });
+      }
+
+      // preenche o formulario com os dados do evento que vai ser editado
+      async function carregarEvento() {
+        const resposta = await fetch(API + "/eventos/" + idEvento);
+
+        if (!resposta.ok) {
+          alert("Evento não encontrado.");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const evento = await resposta.json();
+
+        document.getElementById("titulo").textContent = "Editar evento";
+        document.getElementById("nome").value = evento.nome;
+        document.getElementById("descricao").value = evento.descricao;
+        document.getElementById("local").value = evento.local;
+
+        if (evento.palestrantes.length > 0) {
+          selectPalestrante.value = evento.palestrantes[0].id_palestrante;
+        }
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const evento = {
+          nome: document.getElementById("nome").value.trim(),
+          descricao: document.getElementById("descricao").value.trim(),
+          local: document.getElementById("local").value.trim(),
+          id_palestrante: Number(selectPalestrante.value),
+        };
+
+        if (
+          !evento.nome ||
+          !evento.descricao ||
+          !evento.local ||
+          !evento.id_palestrante
+        ) {
+          alert("Preencha todos os campos.");
+          return;
+        }
+
+        // se tem id é edicao (PUT), senao é cadastro novo (POST)
+        let url = API + "/eventos";
+        let metodo = "POST";
+        if (idEvento) {
+          url = API + "/eventos/" + idEvento;
+          metodo = "PUT";
+        }
+
+        try {
+          const resposta = await fetch(url, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(evento),
+          });
+
+          const dados = await resposta.json();
+
+          if (!resposta.ok) {
+            alert(dados.erro);
+            return;
+          }
+
+          if (idEvento) {
+            alert("Evento atualizado com sucesso!");
+          } else {
+            alert("Cadastro concluído com sucesso!");
+          }
+
+          window.location.href = "index.html";
+        } catch (erro) {
+          alert("Erro ao conectar com o servidor.");
+        }
+      });
+
+      async function iniciar() {
+        try {
+          await carregarPalestrantes();
+          if (idEvento) {
+            await carregarEvento();
+          }
+        } catch (erro) {
+          alert("Erro ao conectar com o servidor.");
+        }
+      }
+
+      iniciar();
+    </script>
+  </body>
+</html>

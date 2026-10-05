@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciador de eventos</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Gerenciador de eventos</h1>
+      <nav>
+        <a href="palestrante.html">Cadastro de palestrantes</a>
+        <a href="evento.html">Cadastro de evento</a>
+        <a href="index.html">Gerenciador de evento</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Eventos</h2>
+      <div id="lista" class="eventos"></div>
+    </main>
+
+    <script>
+      // pelo Express (porta 3000) usa o mesmo endereco; pelo Live Server chama o Express na 3000
+      const API = location.port === "3000" ? "/api" : "http://localhost:3000/api";
+
+      const lista = document.getElementById("lista");
+
+      async function carregarEventos() {
+        try {
+          const resposta = await fetch(API + "/eventos");
+          const eventos = await resposta.json();
+
+          lista.innerHTML = "";
+
+          if (eventos.length === 0) {
+            lista.innerHTML = "<p>Nenhum evento cadastrado.</p>";
+            return;
+          }
+
+          eventos.forEach(mostrarEvento);
+        } catch (erro) {
+          lista.innerHTML = "<p>Não foi possível carregar os eventos.</p>";
+        }
+      }
+
+      // monta uma linha tipo "nome: Fulano"
+      function linha(titulo, valor) {
+        const p = document.createElement("p");
+        const b = document.createElement("b");
+        b.textContent = titulo + ": ";
+        p.append(b, valor);
+        return p;
+      }
+
+      function mostrarEvento(evento) {
+        let palestrantes = evento.palestrantes.map((p) => p.nome).join(", ");
+        if (palestrantes === "") palestrantes = "nenhum";
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.append(
+          linha("nome", evento.nome),
+          linha("descrição", evento.descricao),
+          linha("local", evento.local),
+          linha("palestrante", palestrantes),
+        );
+
+        const btnEditar = document.createElement("button");
+        btnEditar.textContent = "Editar";
+        btnEditar.addEventListener("click", () => {
+          window.location.href = "evento.html?id=" + evento.id_evento;
+        });
+
+        const btnExcluir = document.createElement("button");
+        btnExcluir.textContent = "Excluir";
+        btnExcluir.addEventListener("click", () => excluirEvento(evento));
+
+        card.append(btnEditar, btnExcluir);
+        lista.appendChild(card);
+      }
+
+      async function excluirEvento(evento) {
+        const confirmou = confirm(
+          'Deseja realmente excluir o evento "' + evento.nome + '"?',
+        );
+        if (!confirmou) return;
+
+        try {
+          const resposta = await fetch(API + "/eventos/" + evento.id_evento, {
+            method: "DELETE",
+          });
+
+          if (!resposta.ok) {
+            const dados = await resposta.json();
+            alert(dados.erro);
+            return;
+          }
+
+          alert("Evento excluído com sucesso!");
+          carregarEventos();
+        } catch (erro) {
+          alert("Erro ao conectar com o servidor.");
+        }
+      }
+
+      carregarEventos();
+    </script>
+  </body>
+</html>

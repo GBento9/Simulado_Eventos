@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de palestrante</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Gerenciador de eventos</h1>
+      <nav>
+        <a href="palestrante.html">Cadastro de palestrantes</a>
+        <a href="evento.html">Cadastro de evento</a>
+        <a href="index.html">Gerenciador de evento</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Cadastro palestrante</h2>
+
+      <form id="form">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" maxlength="100" required />
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" maxlength="150" required />
+
+        <button type="submit" class="botao">Cadastrar</button>
+      </form>
+    </main>
+
+    <script>
+      // pelo Express (porta 3000) usa o mesmo endereco; pelo Live Server chama o Express na 3000
+      const API = location.port === "3000" ? "/api" : "http://localhost:3000/api";
+
+      const form = document.getElementById("form");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById("nome").value.trim();
+        const email = document.getElementById("email").value.trim();
+
+        if (nome === "" || email === "") {
+          alert("Preencha todos os campos.");
+          return;
+        }
+
+        // o type="email" aceita "teste@teste", entao confiro o ponto depois do @ tambem
+        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!emailValido) {
+          alert("Digite um e-mail válido.");
+          return;
+        }
+
+        try {
+          const resposta = await fetch(API + "/palestrantes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome: nome, email: email }),
+          });
+
+          const dados = await resposta.json();
+
+          if (!resposta.ok) {
+            alert(dados.erro);
+            return;
+          }
+
+          alert("Cadastro concluído com sucesso!");
+          form.reset();
+        } catch (erro) {
+          alert("Erro ao conectar com o servidor.");
+        }
+      });
+    </script>
+  </body>
+</html>
